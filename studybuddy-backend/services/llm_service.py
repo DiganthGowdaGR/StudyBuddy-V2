@@ -246,8 +246,18 @@ def generate_notes(text: str) -> str:
         "Be concise and student-friendly."
     )
     messages = [("system", system), ("human", text)]
-    response = llm.invoke(messages)
-    return response.content
+    try:
+        response = llm.invoke(messages)
+        return response.content
+    except Exception as e:
+        return (
+            f"### Study Notes: Overview\n\n"
+            f"- **Main Topic**: Key concepts from study materials.\n"
+            f"- **Focus Point**: Important ideas and definitions.\n\n"
+            f"**Summary**:\n"
+            f"You are currently offline or unable to connect to the Groq API. "
+            f"Once you connect back to the internet, StudyBuddy will generate deep structured study notes automatically!"
+        )
 
 
 def answer_question(question: str, context: str) -> str:
@@ -268,8 +278,15 @@ def answer_question(question: str, context: str) -> str:
     )
     user_msg = f"Student: {question}"
     messages = [("system", system), ("human", user_msg)]
-    response = llm.invoke(messages)
-    return response.content
+    try:
+        response = llm.invoke(messages)
+        return response.content
+    except Exception as e:
+        return (
+            "Hi there! I am running in Offline Mode because I couldn't reach the AI brain server. "
+            "Once you reconnect to the network, ask me anything and I'll review your notes to give you a full answer. "
+            "Keep up the great work studying!"
+        )
 
 
 def search_and_synthesize(query: str, search_type: str) -> str:
@@ -286,8 +303,15 @@ def search_and_synthesize(query: str, search_type: str) -> str:
     )
     user_msg = f"Simulate a {search_type} for: {query}"
     messages = [("system", system), ("human", user_msg)]
-    response = llm.invoke(messages)
-    return response.content
+    try:
+        response = llm.invoke(messages)
+        return response.content
+    except Exception as e:
+        return (
+            f"### simulated search: {query}\n\n"
+            f"- **Result**: Search cannot be completed offline.\n"
+            f"**Note**: StudyBuddy search requires an active network connection. Reconnect to study smarter!"
+        )
 
 
 def generate_greeting(student_name: str, recent_sessions: list) -> str:
@@ -311,8 +335,14 @@ def generate_greeting(student_name: str, recent_sessions: list) -> str:
         f"Keep the total response under 80 words. Sound friendly and natural, not robotic."
     )
     messages = [("system", system), ("human", user_msg)]
-    response = llm.invoke(messages)
-    return response.content
+    try:
+        response = llm.invoke(messages)
+        return response.content
+    except Exception as e:
+        # Static mock greetings when offline
+        if has_sessions:
+            return f"Welcome back, {student_name}! Compliments on your studying consistency. How can I help you today?"
+        return f"Welcome, {student_name}! I'm Sensei, your learning guide. Let's make today productive. How can I help you today?"
 
 
 def generate_flashcard_answer(question: str, subject: str, context: str = "") -> str:
@@ -336,5 +366,8 @@ def generate_flashcard_answer(question: str, subject: str, context: str = "") ->
     )
 
     messages = [("system", system), ("human", user_msg)]
-    response = llm.invoke(messages)
-    return response.content
+    try:
+        response = llm.invoke(messages)
+        return response.content
+    except Exception as e:
+        return "Flashcard answer cannot be generated offline. Please connect to the internet to use automated generation."

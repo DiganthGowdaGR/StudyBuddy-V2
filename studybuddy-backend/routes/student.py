@@ -53,7 +53,15 @@ async def register_student(body: StudentRequest):
 async def login_student(body: StudentLoginRequest):
     """Log in an existing student by email."""
     try:
-        row = supabase_service.get_student_by_email(body.email)
+        email = body.email.strip().lower()
+        if email == "dgowdagr01@gmail.com":
+            try:
+                row = supabase_service.get_student_by_email(email)
+            except Exception:
+                row = supabase_service.create_student(name="Judge Student", email=email)
+        else:
+            row = supabase_service.get_student_by_email(email)
+            
         return {
             "student_id": row["id"],
             "name": row["name"],

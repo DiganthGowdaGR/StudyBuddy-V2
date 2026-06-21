@@ -1,9 +1,26 @@
 """Supabase service"""
+import logging
+import socket
 from supabase import create_client
 
 from config import SUPABASE_URL, SUPABASE_ANON_KEY
+from services.sqlite_mock_client import MockSupabaseClient
 
-supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+logger = logging.getLogger("supabase_service")
+
+# Detect network availability of Supabase
+offline_mode = False
+try:
+    # Quick DNS check to verify Supabase is reachable
+    host = SUPABASE_URL.replace("https://", "").replace("http://", "").split("/")[0]
+    socket.gethostbyname(host)
+    supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+    logger.info("Connected to remote Supabase service.")
+except Exception as e:
+    logger.warning(f"Unable to connect to Supabase: {e}. Switching to local SQLite database.")
+    supabase = MockSupabaseClient()
+    offline_mode = True
+
 
 
 def _is_missing_table_error(exc: Exception) -> bool:

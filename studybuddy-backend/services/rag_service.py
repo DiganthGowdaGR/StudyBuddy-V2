@@ -1,21 +1,31 @@
 """RAG service - PDF processing and retrieval"""
+from functools import lru_cache
 from pathlib import Path
 
 import fitz
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain_community.vectorstores import FAISS
 
 VECTORSTORE_DIR = Path("vectorstore")
+FASTEMBED_CACHE_DIR = Path(".cache") / "fastembed"
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 
-# Downloads/caches the sentence-transformers model (via HuggingFace) on first run.
-embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
 )
+
+
+@lru_cache(maxsize=1)
+def get_embeddings() -> FastEmbedEmbeddings:
+    """Create embedding model once with a stable local cache directory."""
+    FASTEMBED_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    return FastEmbedEmbeddings(
+        model_name=EMBEDDING_MODEL,
+        cache_dir=str(FASTEMBED_CACHE_DIR),
+    )
 
 
 def extract_pdf_text(file_path: str) -> str:
@@ -47,11 +57,11 @@ def process_pdf(file_path: str, student_id: str) -> str:
 
     if index_path.exists():
         vectorstore = FAISS.load_local(
-            str(student_dir), embeddings, allow_dangerous_deserialization=True
+            str(student_dir), get_embeddings(), allow_dangerous_deserialization=True
         )
         vectorstore.add_documents(chunks)
     else:
-        vectorstore = FAISS.from_documents(chunks, embeddings)
+        vectorstore = FAISS.from_documents(chunks, get_embeddings())
 
     vectorstore.save_local(str(student_dir))
     return summary
@@ -84,7 +94,7 @@ def rebuild_student_index(student_id: str, file_paths: list[str]) -> None:
             pickle_file.unlink()
         return
 
-    vectorstore = FAISS.from_documents(documents, embeddings)
+    vectorstore = FAISS.from_documents(documents, get_embeddings())
     vectorstore.save_local(str(student_dir))
 
 
@@ -96,6 +106,10 @@ def query_rag(question: str, student_id: str) -> str:
     if not index_path.exists():
         return ""
 
-    vectorstore = FAISS.load_local(str(student_dir), embeddings, allow_dangerous_deserialization=True)
+    vectorstore = FAISS.load_local(
+        str(student_dir),
+        get_embeddings(),
+        allow_dangerous_deserialization=True,
+    )
     docs = vectorstore.similarity_search(question, k=3)
     return "\n\n".join(d.page_content for d in docs)

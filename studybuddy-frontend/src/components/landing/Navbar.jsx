@@ -18,14 +18,18 @@ export default function Navbar() {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: [0.22, 0.61, 0.36, 1] }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled || mobileMenuOpen
-          ? 'bg-[#FCFBF8]/95 backdrop-blur-xl border-b border-[#E6E1DA] shadow-[0_1px_20px_rgba(0,0,0,0.06)]'
-          : 'bg-transparent'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 sm:px-6 md:px-8 ${
+        scrolled ? 'py-3' : 'py-5'
       }`}
     >
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+      <div
+        className={`mx-auto max-w-5xl rounded-2xl md:rounded-full border transition-all duration-300 px-6 py-2.5 md:py-2 bg-[#FCFBF8]/80 backdrop-blur-md ${
+          scrolled
+            ? 'shadow-[0_12px_30px_rgba(0,0,0,0.06)] border-[#D4CDBF]/70 bg-[#FCFBF8]/90'
+            : 'shadow-[0_4px_20px_rgba(0,0,0,0.02)] border-[#E6E1DA]/80'
+        }`}
+      >
+        <div className="flex items-center justify-between">
           {/* Logo */}
           <a href="/" className="flex items-center gap-3 group">
             <div className="relative">
@@ -41,13 +45,13 @@ export default function Navbar() {
             </span>
           </a>
 
-          {/* Nav Links - Desktop */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Nav Links - Desktop (Pill design) */}
+          <div className="hidden md:flex items-center gap-1 bg-[#E6E1DA]/30 p-1 rounded-full border border-[#E6E1DA]/40">
             {['How It Works', 'AI Tutor', 'Your Progress'].map((item) => (
               <a
                 key={item}
                 href={`#${item.toLowerCase().replace(/ /g, '-')}`}
-                className="text-[13px] font-semibold text-[#44403C] hover:text-[#F97316] hover:scale-105 transition-all duration-200"
+                className="px-4 py-1.5 rounded-full text-[13px] font-semibold text-[#44403C] hover:text-[#EA580C] hover:bg-[#FCFBF8] transition-all duration-200"
               >
                 {item}
               </a>
@@ -90,17 +94,17 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu Panel */}
+      {/* Mobile Menu Panel (Floating dropdown) */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="md:hidden bg-[#FCFBF8] border-b border-[#E6E1DA] shadow-lg overflow-hidden"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute top-full left-4 right-4 mt-2 md:hidden bg-[#FCFBF8]/95 backdrop-blur-xl border border-[#E6E1DA] shadow-xl rounded-2xl overflow-hidden z-50"
           >
-            <div className="px-6 py-4 space-y-3 flex flex-col">
+            <div className="px-6 py-5 space-y-3 flex flex-col">
               {['How It Works', 'AI Tutor', 'Your Progress'].map((item) => (
                 <a
                   key={item}

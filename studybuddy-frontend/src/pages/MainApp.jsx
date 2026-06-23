@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
 import { useLocation, useNavigate } from 'react-router-dom'
 import HomeView from '../components/HomeView'
 import WorkspaceView from '../components/WorkspaceView'
@@ -1043,12 +1044,22 @@ export default function MainApp() {
                 key={tab.id}
                 type="button"
                 onClick={() => handleNavigateTab(tab.id)}
-                className={`w-[calc(100%-16px)] text-left flex items-center gap-2.5 rounded-[10px] py-[9px] pr-4 text-[13px] transition-all ${isActive ? 'bg-[#F97316]/10 border-l-2 border-[#F97316] ml-[6px] pl-[14px] text-[#1C1917] font-semibold' : 'ml-2 pl-4 text-[#78716C] hover:bg-[#F6F4EF] hover:text-[#292524] font-medium'}`}
+                className={`w-[calc(100%-16px)] text-left flex items-center gap-2.5 rounded-[10px] py-[9px] pr-4 text-[13px] transition-colors duration-200 relative ml-2 pl-4 ${
+                  isActive ? 'text-[#1C1917] font-semibold' : 'text-[#78716C] hover:bg-[#F6F4EF]/60 hover:text-[#292524] font-medium'
+                }`}
               >
-                <span className={`${isActive ? 'text-[#F97316]' : 'text-[#78716C]'}`}>
+                {isActive && (
+                  <motion.span
+                    layoutId="sidebar-active-pill"
+                    className="absolute inset-y-0 left-0 right-0 bg-[#F97316]/8 border-l-[3px] border-[#F97316] rounded-r-[8px] rounded-l-[2px]"
+                    transition={{ type: 'spring', stiffness: 350, damping: 32 }}
+                    style={{ originY: '0px' }}
+                  />
+                )}
+                <span className={`relative z-10 ${isActive ? 'text-[#F97316]' : 'text-[#78716C]'}`}>
                   <Icon className="h-[18px] w-[18px]" />
                 </span>
-                <span>{tab.label}</span>
+                <span className="relative z-10">{tab.label}</span>
               </button>
             )
           })}
@@ -1059,12 +1070,22 @@ export default function MainApp() {
           <button
             type="button"
             onClick={handleSenseiNavigation}
-            className={`w-[calc(100%-16px)] text-left flex items-center gap-2.5 rounded-[10px] py-[9px] pr-4 text-[13px] transition-all ${activeTab === 'workspace' ? 'bg-[#F97316]/10 border-l-2 border-[#F97316] ml-[6px] pl-[14px] text-[#1C1917] font-semibold' : 'ml-2 pl-4 text-[#78716C] hover:bg-[#F6F4EF] hover:text-[#292524] font-medium'}`}
+            className={`w-[calc(100%-16px)] text-left flex items-center gap-2.5 rounded-[10px] py-[9px] pr-4 text-[13px] transition-colors duration-200 relative ml-2 pl-4 ${
+              activeTab === 'workspace' ? 'text-[#1C1917] font-semibold' : 'text-[#78716C] hover:bg-[#F6F4EF]/60 hover:text-[#292524] font-medium'
+            }`}
           >
-            <span className={`${activeTab === 'workspace' ? 'text-[#F97316]' : 'text-[#78716C]'}`}>
+            {activeTab === 'workspace' && (
+              <motion.span
+                layoutId="sidebar-active-pill"
+                className="absolute inset-y-0 left-0 right-0 bg-[#F97316]/8 border-l-[3px] border-[#F97316] rounded-r-[8px] rounded-l-[2px]"
+                transition={{ type: 'spring', stiffness: 350, damping: 32 }}
+                style={{ originY: '0px' }}
+              />
+            )}
+            <span className={`relative z-10 ${activeTab === 'workspace' ? 'text-[#F97316]' : 'text-[#78716C]'}`}>
               <SidebarSenseiIcon className="h-[18px] w-[18px]" />
             </span>
-            <span>Talk to Sensei</span>
+            <span className="relative z-10">Talk to Sensei</span>
           </button>
         </div>
 

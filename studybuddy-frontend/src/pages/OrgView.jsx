@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../services/api'
 import { clearOrganizationSession, getOrganizationSession } from '../utils/organizationSession'
@@ -252,21 +253,32 @@ export default function OrgView() {
             </div>
           </div>
 
-          <div className="mt-4 flex items-center gap-2">
-            {['announcements', 'exams', 'leaderboard'].map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border ${
-                  activeTab === tab
-                    ? 'border-orange-500 bg-[#FFF7ED] text-orange-600 shadow-sm'
-                    : 'border-transparent text-stone-500 hover:text-stone-850 hover:bg-[#E6E1DA]/40'
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
+          <div className="mt-4 flex items-center gap-1 bg-[#E6E1DA]/30 p-1 rounded-xl border border-[#E6E1DA]/40 w-fit relative">
+            {['announcements', 'exams', 'leaderboard'].map((tab) => {
+              const isActive = activeTab === tab
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 relative ${
+                    isActive ? 'text-orange-600' : 'text-stone-500 hover:text-stone-850'
+                  }`}
+                >
+                  {isActive && (
+                    <motion.span
+                      layoutId="org-view-active-pill"
+                      className="absolute inset-0 bg-white rounded-lg shadow-sm border border-[#E6E1DA]/50"
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      style={{ originY: '0px' }}
+                    />
+                  )}
+                  <span className="relative z-10">
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </span>
+                </button>
+              )
+            })}
           </div>
         </div>
       </section>

@@ -58,7 +58,7 @@ function PortalCard({ title, description, buttonLabel, onClick, icon, accentBg, 
             type="button"
             onClick={onDemoClick}
             disabled={loading}
-            className="sb-glass-shimmer w-full rounded-xl py-3 text-sm font-bold transition-all duration-200 disabled:opacity-60"
+            className="sb-glass-shimmer-purple w-full rounded-xl py-3 text-sm font-bold transition-all duration-200 disabled:opacity-60"
           >
             {loading ? 'Signing in...' : demoLabel}
           </button>

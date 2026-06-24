@@ -74,6 +74,27 @@ export default function Landing({ onAuthSuccess }) {
     }
   }
 
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault()
+    const normalizedEmail = email.trim().toLowerCase()
+    if (!normalizedEmail) {
+      setError('Email is required.')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+    setSuccessMessage('')
+    try {
+      const res = await api.loginStudent(normalizedEmail)
+      finishAuth(res)
+    } catch (err) {
+      setError(err?.message || 'No account found. Please register/join the waiting list.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleAuth = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -81,34 +102,16 @@ export default function Landing({ onAuthSuccess }) {
     setSuccessMessage('')
 
     const normalizedEmail = email.trim().toLowerCase()
-    const normalizedName = name.trim() || 'Student Guest'
+    const normalizedName = 'Student Guest'
 
     try {
       await api.joinWaitingList(normalizedName, normalizedEmail, 'student')
       setSuccessMessage('You have been successfully added to our waiting list! We will notify you once access opens up.')
-      setName('')
       setEmail('')
     } catch (err) {
       setError(err?.message || 'Failed to submit to waiting list. Please try again.')
       console.error(err)
     } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleGoogleLogin = async () => {
-    try {
-      setLoading(true)
-      // Supabase starts provider auth and redirects back to /auth/callback.
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      })
-      if (error) throw error
-    } catch (err) {
-      setError(err.message)
       setLoading(false)
     }
   }
@@ -149,12 +152,35 @@ export default function Landing({ onAuthSuccess }) {
                   <UserIcon />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-display font-semibold tracking-tight text-[#1C1917]">Be an Early User</h1>
-                  <p className="mt-1.5 text-sm text-[#78716C]">StudyBuddy is currently in private beta. Join the waitlist to reserve your spot.</p>
+                  <h1 className="text-4xl font-display font-semibold tracking-tight text-[#1C1917]">
+                    {mode === 'login' ? 'Sign In' : 'Be an Early User'}
+                  </h1>
+                  <p className="mt-1.5 text-sm text-[#78716C]">
+                    {mode === 'login' 
+                      ? 'Access your Student Portal account' 
+                      : 'StudyBuddy is currently in private beta. Join the waitlist to reserve your spot.'}
+                  </p>
                 </div>
               </div>
 
-              <form onSubmit={handleAuth} className="space-y-4 pt-4">
+              <div className="mt-4 grid grid-cols-2 gap-1 rounded-md border border-[#E6E1DA] bg-[#F6F4EF] p-1">
+                <button
+                  type="button"
+                  onClick={() => { setMode('signup'); setError(''); setSuccessMessage('') }}
+                  className={`rounded-md py-2 text-sm font-medium transition-colors ${mode === 'signup' ? 'bg-white text-[#1C1917] shadow-sm' : 'text-[#78716C] hover:text-[#292524]'}`}
+                >
+                  Join Waitlist
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMode('login'); setError(''); setSuccessMessage('') }}
+                  className={`rounded-md py-2 text-sm font-medium transition-colors ${mode === 'login' ? 'bg-white text-[#1C1917] shadow-sm' : 'text-[#78716C] hover:text-[#292524]'}`}
+                >
+                  Sign In
+                </button>
+              </div>
+
+              <form onSubmit={mode === 'login' ? handleLoginSubmit : handleAuth} className="space-y-4 pt-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[#292524]">Email address</label>
                   <input
@@ -185,7 +211,7 @@ export default function Landing({ onAuthSuccess }) {
                       <span>Submitting...</span>
                     </span>
                   ) : (
-                    'Request Early Access'
+                    mode === 'login' ? 'Sign in to your account' : 'Request Early Access'
                   )}
                 </button>
 
@@ -193,7 +219,7 @@ export default function Landing({ onAuthSuccess }) {
                   type="button"
                   onClick={handleDirectDemoAccess}
                   disabled={loading}
-                  className="sb-glass-shimmer inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-bold transition-all disabled:opacity-60"
+                  className="sb-glass-shimmer-purple inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-bold transition-all disabled:opacity-60"
                 >
                   🔑 Direct Judge Access
                 </button>

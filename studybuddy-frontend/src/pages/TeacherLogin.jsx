@@ -70,6 +70,7 @@ function EyeOffIcon() {
 
 export default function TeacherLogin() {
   const navigate = useNavigate()
+  const [mode, setMode] = useState('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
@@ -81,6 +82,29 @@ export default function TeacherLogin() {
 
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
+
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault()
+    const emailVal = loginEmail.trim().toLowerCase()
+    const passwordVal = loginPassword.trim()
+
+    if (!emailVal || !passwordVal) {
+      setError('Email and Password are required.')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+    setSuccessMessage('')
+    try {
+      const loginResult = await api.teacherLogin(emailVal, passwordVal)
+      storeAndNavigate(loginResult)
+    } catch (err) {
+      setError(err.message || 'No account found. Please register/join the waiting list.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const storeAndNavigate = (loginResult) => {
     const subjects = Array.isArray(loginResult.subjects)
@@ -191,9 +215,32 @@ export default function TeacherLogin() {
                   <UserIcon />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-display font-semibold tracking-tight text-[#1C1917]">Be an Early Teacher</h1>
-                  <p className="mt-1.5 text-sm text-[#78716C]">StudyBuddy Teacher tools are currently in private beta. Join the waitlist.</p>
+                  <h1 className="text-4xl font-display font-semibold tracking-tight text-[#1C1917]">
+                    {mode === 'login' ? 'Sign In' : 'Be an Early Teacher'}
+                  </h1>
+                  <p className="mt-1.5 text-sm text-[#78716C]">
+                    {mode === 'login' 
+                      ? 'Access your Teacher Portal account' 
+                      : 'StudyBuddy Teacher tools are currently in private beta. Join the waitlist.'}
+                  </p>
                 </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-1 rounded-md border border-[#E6E1DA] bg-[#F6F4EF] p-1">
+                <button
+                  type="button"
+                  onClick={() => { setMode('signup'); setError(''); setSuccessMessage('') }}
+                  className={`rounded-md py-2 text-sm font-medium transition-colors ${mode === 'signup' ? 'bg-white text-[#1C1917] shadow-sm' : 'text-[#78716C] hover:text-[#292524]'}`}
+                >
+                  Join Waitlist
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMode('login'); setError(''); setSuccessMessage('') }}
+                  className={`rounded-md py-2 text-sm font-medium transition-colors ${mode === 'login' ? 'bg-white text-[#1C1917] shadow-sm' : 'text-[#78716C] hover:text-[#292524]'}`}
+                >
+                  Sign In
+                </button>
               </div>
 
               {error && <p className="text-xs text-rose-500">{error}</p>}
@@ -203,7 +250,7 @@ export default function TeacherLogin() {
                 </div>
               )}
 
-              <form onSubmit={handleTeacherLogin} className="space-y-4 pt-4">
+              <form onSubmit={mode === 'login' ? handleLoginSubmit : handleTeacherLogin} className="space-y-4 pt-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[#292524]">Email address</label>
                   <input
@@ -216,6 +263,30 @@ export default function TeacherLogin() {
                   />
                 </div>
 
+                {mode === 'login' && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#292524]">Password</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        required
+                        className="h-12 w-full rounded-xl border border-[#D4CDBF] bg-white px-4 pr-11 text-base text-[#292524] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute inset-y-0 right-3 flex items-center"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -226,14 +297,16 @@ export default function TeacherLogin() {
                       <LoadingSpinner />
                       Submitting...
                     </span>
-                  ) : 'Request Teacher Access'}
+                  ) : (
+                    mode === 'login' ? 'Sign in to your account' : 'Request Teacher Access'
+                  )}
                 </button>
 
                 <button
                   type="button"
                   onClick={handleDirectDemoAccess}
                   disabled={loading}
-                  className="sb-glass-shimmer inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-bold transition-all disabled:opacity-60"
+                  className="sb-glass-shimmer-purple inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-bold transition-all disabled:opacity-60"
                 >
                   🔑 Direct Judge Access
                 </button>

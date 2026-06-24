@@ -191,19 +191,19 @@ export default function TeacherLogin() {
                   <UserIcon />
                 </div>
                 <div>
-                  <h1 className="text-5xl font-display font-semibold tracking-tight text-[#1C1917]">Sign in</h1>
-                  <p className="mt-1 text-lg text-[#78716C]">Teacher Portal</p>
+                  <h1 className="text-4xl font-display font-semibold tracking-tight text-[#1C1917]">Be an Early Teacher</h1>
+                  <p className="mt-1.5 text-sm text-[#78716C]">StudyBuddy Teacher tools are currently in private beta. Join the waitlist.</p>
                 </div>
               </div>
 
               {error && <p className="text-xs text-rose-500">{error}</p>}
               {successMessage && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-700 leading-relaxed">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-700 leading-relaxed animate-in fade-in slide-in-from-bottom-2 duration-200">
                   {successMessage}
                 </div>
               )}
 
-              <form onSubmit={handleTeacherLogin} className="space-y-4">
+              <form onSubmit={handleTeacherLogin} className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[#292524]">Email address</label>
                   <input
@@ -211,49 +211,29 @@ export default function TeacherLogin() {
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     placeholder="teacher@example.com"
+                    required
                     className="h-12 w-full rounded-xl border border-[#D4CDBF] bg-white px-4 text-base text-[#292524] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316]"
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#292524]">Password</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Enter your password"
-                      className="h-12 w-full rounded-xl border border-[#D4CDBF] bg-white px-4 pr-11 text-base text-[#292524] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute inset-y-0 right-3 flex items-center"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-                    </button>
-                  </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#F97316] to-[#FB923C] px-4 text-base font-semibold text-white transition-colors hover:brightness-110 disabled:opacity-60"
+                  className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#F97316] to-[#FB923C] px-4 text-base font-semibold text-white transition-all hover:brightness-105 active:scale-[0.99] disabled:opacity-60"
                 >
                   {loading ? (
                     <span className="inline-flex items-center gap-2">
                       <LoadingSpinner />
-                      Signing in...
+                      Submitting...
                     </span>
-                  ) : 'Sign in to your account'}
+                  ) : 'Request Teacher Access'}
                 </button>
 
                 <button
                   type="button"
                   onClick={handleDirectDemoAccess}
                   disabled={loading}
-                  className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-[#FDBA74] bg-[#FFF7ED] px-4 text-base font-bold text-[#F97316] hover:bg-[#FFEAD6] transition-colors disabled:opacity-60"
+                  className="sb-glass-shimmer inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-bold transition-all disabled:opacity-60"
                 >
                   🔑 Direct Judge Access
                 </button>

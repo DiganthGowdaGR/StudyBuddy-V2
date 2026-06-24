@@ -104,7 +104,6 @@ function OrganizationPublicRoute({ children }) {
 }
 
 export default function App() {
-
   return (
     <BrowserRouter>
       <AnimatedRoutes />

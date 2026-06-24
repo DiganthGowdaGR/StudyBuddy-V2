@@ -153,8 +153,63 @@ export default function PortalSelect() {
     }
   }
 
+  const [judgeModal, setJudgeModal] = useState({ isOpen: false, role: null })
+  const [judgeCode, setJudgeCode] = useState('')
+  const [judgeError, setJudgeError] = useState('')
+
+  const openJudgeModal = (role) => {
+    setJudgeModal({ isOpen: true, role })
+    setJudgeCode('')
+    setJudgeError('')
+  }
+
+  const handleJudgeSubmit = (e) => {
+    e.preventDefault()
+    if (judgeCode === '19780906') {
+      const roleToLaunch = judgeModal.role
+      setJudgeModal({ isOpen: false, role: null })
+      if (roleToLaunch === 'student') handleStudentDemo()
+      if (roleToLaunch === 'teacher') handleTeacherDemo()
+      if (roleToLaunch === 'org') handleOrgDemo()
+    } else {
+      setJudgeError('Incorrect private code')
+    }
+  }
+
   return (
     <div className={`portal-scene sb-page-shell relative min-h-screen overflow-hidden bg-[#FCFBF8] px-6 py-10 ${isLeaving ? 'sb-page-exit' : ''}`}>
+      {judgeModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setJudgeModal({ isOpen: false, role: null })}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+            <h3 className="text-xl font-bold text-[#1C1917] mb-2">Judge Access</h3>
+            <p className="text-sm text-[#78716C] mb-4">Please enter your private code to continue.</p>
+            <form onSubmit={handleJudgeSubmit}>
+              <input 
+                autoFocus
+                type="password"
+                value={judgeCode}
+                onChange={(e) => { setJudgeCode(e.target.value); setJudgeError('') }}
+                placeholder="Enter code"
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 mb-2 focus:border-[#F97316] focus:outline-none focus:ring-2 focus:ring-[#F97316]/20"
+              />
+              {judgeError && <p className="text-sm text-red-500 mb-3">{judgeError}</p>}
+              <button 
+                type="submit"
+                className="w-full mt-2 rounded-xl bg-gradient-to-r from-[#F97316] to-[#FB923C] py-3 text-sm font-semibold text-white shadow-md hover:-translate-y-0.5 transition-all"
+              >
+                Verify & Enter
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Light warm grid */}
       <div className="portal-grid" />
       {/* Very subtle warm radial accents */}
@@ -221,7 +276,7 @@ export default function PortalSelect() {
             description="Your personal AI tutor. Upload PDFs, ask questions by voice, take exams and track your progress daily."
             buttonLabel="Login as Student"
             onClick={() => navigateWithTransition('/student/login')}
-            onDemoClick={handleStudentDemo}
+            onDemoClick={() => openJudgeModal('student')}
             demoLabel="🔑 Direct Judge Access"
             loading={loading}
             icon={<StudentIcon />}
@@ -235,7 +290,7 @@ export default function PortalSelect() {
             description="Create exams, grade submissions, post announcements and watch your students grow."
             buttonLabel="Login as Teacher"
             onClick={() => navigateWithTransition('/teacher/login')}
-            onDemoClick={handleTeacherDemo}
+            onDemoClick={() => openJudgeModal('teacher')}
             demoLabel="🔑 Direct Judge Access"
             loading={loading}
             icon={<TeacherIcon />}
@@ -249,7 +304,7 @@ export default function PortalSelect() {
             description="Set up your institution, register teachers, manage subjects and authorize students at scale."
             buttonLabel="Login as Organization"
             onClick={() => navigateWithTransition('/organization/login')}
-            onDemoClick={handleOrgDemo}
+            onDemoClick={() => openJudgeModal('org')}
             demoLabel="🔑 Direct Judge Access"
             loading={loading}
             icon={<OrganizationIcon />}

@@ -321,18 +321,17 @@ def generate_greeting(student_name: str, recent_sessions: list) -> str:
     if has_sessions:
         topics = [s.get("topics_covered", []) for s in recent_sessions]
         flat_topics = [t for sub in topics for t in sub]
-        session_info = f"Their recent study topics were: {', '.join(flat_topics[:5])}." if flat_topics else ""
+        session_info = f"They recently studied: {', '.join(flat_topics[:3])}." if flat_topics else ""
 
-    system = "You are Sensei, a warm and encouraging AI study companion for students."
+    system = "You are Sensei, a warm, concise AI study companion."
     user_msg = (
         f"Greet a student named {student_name}. "
         f"{'They are a returning student. ' + session_info if has_sessions else 'This is their first session.'} "
         f"Do the following in order:\n"
         f"1. Welcome them warmly by name.\n"
-        f"2. If returning, briefly mention what they studied before and compliment their consistency.\n"
-        f"3. Give ONE short (2-sentence) motivational message.\n"
-        f"4. End with: 'How can I help you today?'\n"
-        f"Keep the total response under 80 words. Sound friendly and natural, not robotic."
+        f"2. If returning, briefly mention their recent topics.\n"
+        f"3. End with: 'How can I help you today?'\n"
+        f"Keep the entire response extremely short and concise, under 20 words. No long motivational text."
     )
     messages = [("system", system), ("human", user_msg)]
     try:
@@ -341,8 +340,8 @@ def generate_greeting(student_name: str, recent_sessions: list) -> str:
     except Exception as e:
         # Static mock greetings when offline
         if has_sessions:
-            return f"Welcome back, {student_name}! Compliments on your studying consistency. How can I help you today?"
-        return f"Welcome, {student_name}! I'm Sensei, your learning guide. Let's make today productive. How can I help you today?"
+            return f"Welcome back, {student_name}! How can I help you today?"
+        return f"Welcome, {student_name}! I'm Sensei. How can I help you today?"
 
 
 def generate_flashcard_answer(question: str, subject: str, context: str = "") -> str:

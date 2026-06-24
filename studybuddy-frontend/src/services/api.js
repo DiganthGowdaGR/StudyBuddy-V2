@@ -144,6 +144,12 @@ export const api = {
     return res.json()
   },
 
+  getHeatmap: async (student_id) => {
+    const res = await fetch(`${BASE_URL}/api/memory/heatmap/${student_id}`)
+    if (!res.ok) throw await parseError(res, "Failed to fetch heatmap")
+    return res.json()
+  },
+
   uploadPDF: async (file, student_id) => {
     const formData = new FormData()
     formData.append("file", file)

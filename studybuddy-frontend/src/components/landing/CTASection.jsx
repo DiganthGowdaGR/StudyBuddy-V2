@@ -88,9 +88,9 @@ export default function CTASection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 1.5 }}
-            className="mt-6 text-[13px] text-[#78716C]/50"
+            className="mt-6 text-[13px] text-[#78716C]/50 font-medium"
           >
-            Free for students. Always.
+            Explore Plans.
           </motion.p>
         </motion.div>
       </div>

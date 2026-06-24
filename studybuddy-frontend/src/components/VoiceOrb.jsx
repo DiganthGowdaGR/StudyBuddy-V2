@@ -259,6 +259,25 @@ export default function VoiceOrb({ studentId, onResult, speakText, onScheduleCre
       clearRecordTimeout()
       releaseStream()
 
+      // Stop any active audio player playback
+      if (audioPlayer.current) {
+        try {
+          audioPlayer.current.pause()
+          audioPlayer.current.src = ''
+        } catch (e) {
+          console.error(e)
+        }
+      }
+
+      // Stop any active browser TTS
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        try {
+          window.speechSynthesis.cancel()
+        } catch (e) {
+          console.error(e)
+        }
+      }
+
       const recorder = mediaRecorder.current
       if (recorder && recorder.state !== 'inactive') {
         recorder.stop()

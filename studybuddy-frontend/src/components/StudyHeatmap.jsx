@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { api } from "../services/api"
 
 const WEEKS = 53 // 12 months of data
 const DAYS = 7 // Mon to Sun
@@ -29,9 +30,7 @@ export default function StudyHeatmap({ studentId }) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(`/api/memory/heatmap/${studentId}`)
-        if (!res.ok) throw new Error("Failed to load heatmap")
-        const data = await res.json()
+        const data = await api.getHeatmap(studentId)
         setHeatmapData(data.heatmap || {})
       } catch {
         setHeatmapData({})

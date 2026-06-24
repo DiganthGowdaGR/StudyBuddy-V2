@@ -7,6 +7,7 @@ import NotebookSection from '../components/landing/NotebookSection'
 import AITutorSection from '../components/landing/AITutorSection'
 import AdaptiveLearningSection from '../components/landing/AdaptiveLearningSection'
 import CTASection from '../components/landing/CTASection'
+import TeacherOrgSection from '../components/landing/TeacherOrgSection'
 import Footer from '../components/landing/Footer'
 
 /* 
@@ -128,6 +129,23 @@ export default function ProductLanding() {
 
         <div className="relative">
           <AdaptiveLearningSection />
+        </div>
+
+        {/* --- Emotional beat: Final CTA transition --- */}
+        <StoryBeat>
+          <p className="font-serif text-[22px] md:text-[28px] italic font-medium leading-relaxed text-[#57534E]">
+            And it's not just for students. StudyBuddy brings{' '}
+            <span className="text-[#1C1917] font-semibold border-b border-[#F97316]/30">teachers and students</span> together in one{' '}
+            <span className="text-[#EA580C] not-italic font-bold">seamless platform</span>.
+          </p>
+        </StoryBeat>
+
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="h-px bg-gradient-to-r from-transparent via-[#E6E1DA] to-transparent" />
+        </div>
+
+        <div className="relative">
+          <TeacherOrgSection />
         </div>
 
         {/* --- Final warm divider before emotional close --- */}

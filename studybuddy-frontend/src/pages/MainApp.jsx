@@ -216,6 +216,7 @@ export default function MainApp() {
   const previewVideoRef = useRef(null)
   const cameraStreamRef = useRef(null)
   const lastReactedEmotionRef = useRef(null)
+  const hasSpokenGreetingRef = useRef(false)
 
   const [workspaces, setWorkspaces] = useState([])
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(() =>
@@ -337,7 +338,10 @@ export default function MainApp() {
       greetingText = mem.greeting || ''
       setGreeting(greetingText)
       setSessions(mem.recent_sessions || [])
-      setSpeakText(greetingText || '')
+      if (!hasSpokenGreetingRef.current && greetingText) {
+        setSpeakText(greetingText)
+        hasSpokenGreetingRef.current = true
+      }
     } else {
       console.error('Memory fetch failed', memoryResult.reason)
     }

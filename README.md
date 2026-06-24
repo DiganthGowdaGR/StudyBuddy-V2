@@ -1,3 +1,5 @@
+# Judges Access Code: ``19780906``
+---
 # StudyBuddy: Advanced AI-Powered RAG Learning Ecosystem
 
 StudyBuddy is a high-performance, full-stack learning platform that leverages Retrieval-Augmented Generation (RAG) and low-latency LLM orchestration to transform static academic documents into interactive, context-aware digital tutors.

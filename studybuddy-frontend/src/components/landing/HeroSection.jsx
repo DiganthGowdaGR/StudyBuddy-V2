@@ -101,7 +101,7 @@ export default function HeroSection() {
             className="group relative px-7 py-3.5 rounded-full text-[15px] font-semibold text-white bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#FB923C] hover:to-[#F97316] transition-all duration-300 shadow-[0_0_24px_rgba(249,115,22,0.25)] hover:shadow-[0_0_40px_rgba(249,115,22,0.4)] hover:-translate-y-0.5"
           >
             <span className="relative z-10 flex items-center gap-2">
-              Start Learning
+              Be an Early User
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14" />
                 <path d="m12 5 7 7-7 7" />

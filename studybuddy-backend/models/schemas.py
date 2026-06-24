@@ -86,3 +86,9 @@ class WorkspaceCreateRequest(BaseModel):
     student_id: str
     name: str
     workspace_id: str | None = None
+
+
+class WaitingListRequest(BaseModel):
+    name: str
+    email: str
+    role: str

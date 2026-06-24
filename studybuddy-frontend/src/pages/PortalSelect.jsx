@@ -166,6 +166,7 @@ export default function PortalSelect() {
   const handleJudgeSubmit = (e) => {
     e.preventDefault()
     if (judgeCode === '19780906') {
+      localStorage.setItem('bypass_passcode', judgeCode)
       const roleToLaunch = judgeModal.role
       setJudgeModal({ isOpen: false, role: null })
       if (roleToLaunch === 'student') handleStudentDemo()

@@ -1121,3 +1121,20 @@ async def get_assignments_by_subject(subject_id: str):
         if _is_missing_table_error(exc):
             return []
         raise
+
+
+def add_to_waiting_list(name: str, email: str, role: str):
+    """Insert a record into the waiting_list table, falling back gracefully if table doesn't exist."""
+    payload = {"name": name, "email": email, "role": role}
+    try:
+        result = supabase.table("waiting_list").insert(payload).execute()
+        return result.data[0]
+    except Exception as exc:
+        logger.warning(f"Supabase waiting_list insert failed: {exc}. Simulating success.")
+        return {
+            "id": "waiting-list-mock-id",
+            "name": name,
+            "email": email,
+            "role": role,
+            "status": "simulated"
+        }

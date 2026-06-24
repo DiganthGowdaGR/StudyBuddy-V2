@@ -72,6 +72,7 @@ export default function TeacherLogin() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
@@ -106,6 +107,17 @@ export default function TeacherLogin() {
   }
 
   const handleDirectDemoAccess = async () => {
+    const bypassPasscode = localStorage.getItem('bypass_passcode')
+    if (bypassPasscode !== '19780906') {
+      const code = prompt('Please enter the private code to access direct judge mode:')
+      if (code === '19780906') {
+        localStorage.setItem('bypass_passcode', code)
+      } else {
+        setError('Incorrect private code')
+        return
+      }
+    }
+
     setLoading(true)
     setError('')
     setLoginEmail('dgowdagr02@gmail.com')
@@ -122,19 +134,22 @@ export default function TeacherLogin() {
 
   const handleTeacherLogin = async (e) => {
     e.preventDefault()
-    if (!loginEmail.trim() || !loginPassword) {
-      setError('Email and password are required.')
+    if (!loginEmail.trim()) {
+      setError('Email is required.')
       return
     }
 
     setLoading(true)
     setError('')
+    setSuccessMessage('')
 
     try {
-      const loginResult = await api.teacherLogin(loginEmail.trim().toLowerCase(), loginPassword)
-      storeAndNavigate(loginResult)
+      await api.joinWaitingList('Teacher Guest', loginEmail.trim().toLowerCase(), 'teacher')
+      setSuccessMessage('You have been successfully added to our waiting list! We will notify you once access opens up.')
+      setLoginEmail('')
+      setLoginPassword('')
     } catch (err) {
-      setError(err.message || 'Teacher login failed.')
+      setError(err.message || 'Failed to submit to waiting list. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -182,6 +197,11 @@ export default function TeacherLogin() {
               </div>
 
               {error && <p className="text-xs text-rose-500">{error}</p>}
+              {successMessage && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-700 leading-relaxed">
+                  {successMessage}
+                </div>
+              )}
 
               <form onSubmit={handleTeacherLogin} className="space-y-4">
                 <div className="space-y-2">

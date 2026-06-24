@@ -16,6 +16,24 @@ function resolveRuntimeApiBaseUrl() {
 }
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || resolveRuntimeApiBaseUrl()
+
+// Intercept all fetch requests to inject the bypass passcode header if present
+if (typeof window !== "undefined") {
+  const originalFetch = window.fetch;
+  window.fetch = function (url, options = {}) {
+    const bypassPasscode = localStorage.getItem("bypass_passcode");
+    if (bypassPasscode) {
+      options.headers = options.headers || {};
+      if (options.headers instanceof Headers) {
+        options.headers.set("X-Passcode", bypassPasscode);
+      } else {
+        options.headers["X-Passcode"] = bypassPasscode;
+      }
+    }
+    return originalFetch(url, options);
+  };
+}
+
 const LOCAL_BASE_FALLBACKS = ["http://127.0.0.1:8000", "http://localhost:8000"]
 
 async function fetchWithLocalFallback(path, init) {
@@ -135,6 +153,16 @@ export const api = {
       body: JSON.stringify({ email }),
     })
     if (!res.ok) throw await parseError(res, "Login failed")
+    return res.json()
+  },
+
+  joinWaitingList: async (name, email, role) => {
+    const res = await fetch(`${BASE_URL}/api/waiting-list`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, role }),
+    })
+    if (!res.ok) throw await parseError(res, "Failed to submit to waiting list")
     return res.json()
   },
 

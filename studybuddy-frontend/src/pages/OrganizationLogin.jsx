@@ -101,8 +101,8 @@ export default function OrganizationLogin() {
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    if (!loginEmail.trim() || !loginPassword) {
-      setError('Email and password are required.')
+    if (!loginEmail.trim()) {
+      setError('Email is required.')
       return
     }
 
@@ -110,16 +110,29 @@ export default function OrganizationLogin() {
     setError('')
     setSuccess('')
     try {
-      const res = await api.orgAdminLogin(loginEmail.trim().toLowerCase(), loginPassword)
-      storeAndNavigate(res)
+      await api.joinWaitingList('Organization Guest', loginEmail.trim().toLowerCase(), 'org')
+      setSuccess('You have been successfully added to our waiting list! We will notify you once access opens up.')
+      setLoginEmail('')
+      setLoginPassword('')
     } catch (err) {
-      setError(err.message || 'Organization login failed.')
+      setError(err.message || 'Failed to submit to waiting list. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   const handleDirectDemoAccess = async () => {
+    const bypassPasscode = localStorage.getItem('bypass_passcode')
+    if (bypassPasscode !== '19780906') {
+      const code = prompt('Please enter the private code to access direct judge mode:')
+      if (code === '19780906') {
+        localStorage.setItem('bypass_passcode', code)
+      } else {
+        setError('Incorrect private code')
+        return
+      }
+    }
+
     setLoading(true)
     setError('')
     setSuccess('')
@@ -137,25 +150,24 @@ export default function OrganizationLogin() {
 
   const handleRegister = async (e) => {
     e.preventDefault()
-    if (!orgName.trim() || !orgEmail.trim() || !orgPassword) {
-      setError('Organization name, email, and password are required.')
+    if (!orgEmail.trim()) {
+      setError('Admin email is required.')
       return
     }
 
     setLoading(true)
     setError('')
     setSuccess('')
+    const nameToSubmit = orgName.trim() || 'Organization Guest'
     try {
-      const res = await api.orgAdminRegister({
-        name: orgName.trim(),
-        description: orgDescription.trim(),
-        email: orgEmail.trim().toLowerCase(),
-        password: orgPassword,
-      })
-      setSuccess(`Organization created. Invite code: ${res.invite_code}`)
-      storeAndNavigate(res)
+      await api.joinWaitingList(nameToSubmit, orgEmail.trim().toLowerCase(), 'org')
+      setSuccess('Your organization details have been added to the waiting list! We will contact you once access opens up.')
+      setOrgName('')
+      setOrgDescription('')
+      setOrgEmail('')
+      setOrgPassword('')
     } catch (err) {
-      setError(err.message || 'Could not create organization account.')
+      setError(err.message || 'Failed to submit to waiting list. Please try again.')
     } finally {
       setLoading(false)
     }

@@ -1,7 +1,7 @@
 """Student routes"""
 from fastapi import APIRouter, HTTPException
 
-from models.schemas import StudentLoginRequest, StudentRequest
+from models.schemas import StudentLoginRequest, StudentRequest, WaitingListRequest
 from services import supabase_service
 
 router = APIRouter()
@@ -86,5 +86,19 @@ async def get_student(student_id: str):
             "email": row["email"],
             "status": "success",
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/waiting-list")
+async def join_waiting_list(body: WaitingListRequest):
+    """Save user to the waiting list."""
+    try:
+        row = supabase_service.add_to_waiting_list(
+            name=body.name,
+            email=body.email,
+            role=body.role,
+        )
+        return {"status": "success", "data": row}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

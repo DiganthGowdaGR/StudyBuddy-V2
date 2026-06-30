@@ -6,7 +6,24 @@ from fastapi.responses import JSONResponse
 from routes import student, upload, chat, notes, voice, memory, study_data, emotion, org, exam
 from services.scheduler_job import start_scheduler
 
+from config import REQUIRE_PASSCODE, BYPASS_PASSCODE
+
 app = FastAPI(title="StudyBuddy API")
+
+
+@app.middleware("http")
+async def verify_passcode_middleware(request: Request, call_next):
+    # Enforce passcode only on /api routes, excluding /api/waiting-list
+    path = request.url.path
+    if REQUIRE_PASSCODE and path.startswith("/api") and path != "/api/waiting-list":
+        passcode = request.headers.get("x-passcode") or request.headers.get("X-Passcode")
+        if passcode != BYPASS_PASSCODE:
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Unauthorized: Invalid or missing private passcode", "status": "forbidden"}
+            )
+    response = await call_next(request)
+    return response
 
 
 @app.on_event("startup")

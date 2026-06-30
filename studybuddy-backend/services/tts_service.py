@@ -3,7 +3,7 @@ import time
 
 import httpx
 
-from config import GROQ_API_KEY
+# config key loaded dynamically in function to support rotation
 
 # Groq OpenAI-compatible speech endpoint.
 TTS_URL = "https://api.groq.com/openai/v1/audio/speech"
@@ -28,18 +28,25 @@ def text_to_speech(text: str) -> bytes:
     if not input_text:
         raise ValueError("Text is required for TTS.")
 
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "model": TTS_MODEL,
-        "input": input_text,
-        "voice": TTS_VOICE,
-        "response_format": "wav",
-    }
+    from config import GROQ_API_KEYS, GROQ_API_KEY
+    from services.groq_auth import get_current_key, rotate_key
 
-    for attempt in range(MAX_TTS_ATTEMPTS):
+    attempts = len(GROQ_API_KEYS) if GROQ_API_KEYS else 1
+    last_exc = None
+
+    for attempt in range(attempts):
+        api_key = get_current_key() or GROQ_API_KEY
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": TTS_MODEL,
+            "input": input_text,
+            "voice": TTS_VOICE,
+            "response_format": "wav",
+        }
+
         try:
             with httpx.Client() as client:
                 response = client.post(
@@ -51,23 +58,23 @@ def text_to_speech(text: str) -> bytes:
                 response.raise_for_status()
                 return response.content
         except httpx.HTTPStatusError as exc:
+            last_exc = exc
             status_code = int(exc.response.status_code)
             response_text = str(exc.response.text or "").strip()
 
-            # Retry only for rate limiting, then bubble exact status back to caller.
-            if status_code == 429 and attempt < MAX_TTS_ATTEMPTS - 1:
-                wait_seconds = RETRY_BACKOFF_SECONDS[min(attempt, len(RETRY_BACKOFF_SECONDS) - 1)]
-                time.sleep(wait_seconds)
+            if status_code == 429 and attempts > 1:
+                rotate_key()
                 continue
 
             detail = response_text[:500] if response_text else f"Groq TTS request failed with status {status_code}."
             raise TTSUpstreamError(status_code=status_code, detail=detail) from exc
-        except httpx.HTTPError as exc:
-            if attempt < MAX_TTS_ATTEMPTS - 1:
-                wait_seconds = RETRY_BACKOFF_SECONDS[min(attempt, len(RETRY_BACKOFF_SECONDS) - 1)]
-                time.sleep(wait_seconds)
+        except Exception as exc:
+            last_exc = exc
+            if attempts > 1:
+                rotate_key()
                 continue
+            raise exc
 
-            raise RuntimeError("Failed to connect to Groq TTS service.") from exc
-
+    if last_exc:
+        raise last_exc
     raise RuntimeError("Unable to generate speech at the moment.")

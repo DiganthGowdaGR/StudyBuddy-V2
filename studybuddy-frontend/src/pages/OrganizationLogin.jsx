@@ -78,16 +78,34 @@ export default function OrganizationLogin() {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false)
 
   useEffect(() => {
-    document.title = 'StudyBuddy â€” Organization'
+    document.title = 'StudyBuddy — Organization'
   }, [])
 
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
 
-  const [orgName, setOrgName] = useState('')
-  const [orgDescription, setOrgDescription] = useState('')
-  const [orgEmail, setOrgEmail] = useState('')
-  const [orgPassword, setOrgPassword] = useState('')
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault()
+    const emailVal = loginEmail.trim().toLowerCase()
+    const passwordVal = loginPassword.trim()
+
+    if (!emailVal || !passwordVal) {
+      setError('Email and Password are required.')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+    setSuccess('')
+    try {
+      const res = await api.orgAdminLogin(emailVal, passwordVal)
+      storeAndNavigate(res)
+    } catch (err) {
+      setError(err.message || 'No account found. Please register/join the waiting list.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const storeAndNavigate = (res) => {
     setOrganizationSession({
@@ -101,8 +119,8 @@ export default function OrganizationLogin() {
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    if (!loginEmail.trim() || !loginPassword) {
-      setError('Email and password are required.')
+    if (!loginEmail.trim()) {
+      setError('Email is required.')
       return
     }
 
@@ -110,16 +128,29 @@ export default function OrganizationLogin() {
     setError('')
     setSuccess('')
     try {
-      const res = await api.orgAdminLogin(loginEmail.trim().toLowerCase(), loginPassword)
-      storeAndNavigate(res)
+      await api.joinWaitingList('Organization Guest', loginEmail.trim().toLowerCase(), 'org')
+      setSuccess('You have been successfully added to our waiting list! We will notify you once access opens up.')
+      setLoginEmail('')
+      setLoginPassword('')
     } catch (err) {
-      setError(err.message || 'Organization login failed.')
+      setError(err.message || 'Failed to submit to waiting list. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   const handleDirectDemoAccess = async () => {
+    const bypassPasscode = localStorage.getItem('bypass_passcode')
+    if (bypassPasscode !== '19780906') {
+      const code = prompt('Please enter the private code to access direct judge mode:')
+      if (code === '19780906') {
+        localStorage.setItem('bypass_passcode', code)
+      } else {
+        setError('Incorrect private code')
+        return
+      }
+    }
+
     setLoading(true)
     setError('')
     setSuccess('')
@@ -137,25 +168,24 @@ export default function OrganizationLogin() {
 
   const handleRegister = async (e) => {
     e.preventDefault()
-    if (!orgName.trim() || !orgEmail.trim() || !orgPassword) {
-      setError('Organization name, email, and password are required.')
+    if (!orgEmail.trim()) {
+      setError('Admin email is required.')
       return
     }
 
     setLoading(true)
     setError('')
     setSuccess('')
+    const nameToSubmit = orgName.trim() || 'Organization Guest'
     try {
-      const res = await api.orgAdminRegister({
-        name: orgName.trim(),
-        description: orgDescription.trim(),
-        email: orgEmail.trim().toLowerCase(),
-        password: orgPassword,
-      })
-      setSuccess(`Organization created. Invite code: ${res.invite_code}`)
-      storeAndNavigate(res)
+      await api.joinWaitingList(nameToSubmit, orgEmail.trim().toLowerCase(), 'org')
+      setSuccess('Your organization details have been added to the waiting list! We will contact you once access opens up.')
+      setOrgName('')
+      setOrgDescription('')
+      setOrgEmail('')
+      setOrgPassword('')
     } catch (err) {
-      setError(err.message || 'Could not create organization account.')
+      setError(err.message || 'Failed to submit to waiting list. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -197,52 +227,55 @@ export default function OrganizationLogin() {
                   <UserIcon />
                 </div>
                 <div>
-                  <h1 className="text-5xl font-semibold tracking-tight text-[#1C1917]">Sign in</h1>
-                  <p className="mt-1 text-lg text-[#78716C]">Access your secure account</p>
+                  <h1 className="text-4xl font-display font-semibold tracking-tight text-[#1C1917]">
+                    {mode === 'login' ? 'Sign In' : 'Be an Early Institution'}
+                  </h1>
+                  <p className="mt-1.5 text-sm text-[#78716C]">
+                    {mode === 'login' 
+                      ? 'Access your Organization Portal account' 
+                      : 'StudyBuddy Organization tools are currently in private beta. Join the waitlist.'}
+                  </p>
                 </div>
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-1 rounded-md border border-[#E6E1DA] bg-[#F6F4EF] p-1">
                 <button
                   type="button"
-                  onClick={() => {
-                    setMode('login')
-                    setError('')
-                    setSuccess('')
-                  }}
-                  className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${mode === 'login' ? 'bg-white text-[#1C1917] shadow-sm' : 'text-[#78716C] hover:text-[#292524]'}`}
+                  onClick={() => { setMode('signup'); setError(''); setSuccess('') }}
+                  className={`rounded-md py-2 text-sm font-medium transition-colors ${mode === 'signup' ? 'bg-white text-[#1C1917] shadow-sm' : 'text-[#78716C] hover:text-[#292524]'}`}
                 >
-                  Login
+                  Join Waitlist
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setMode('register')
-                    setError('')
-                    setSuccess('')
-                  }}
-                  className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${mode === 'register' ? 'bg-white text-[#1C1917] shadow-sm' : 'text-[#78716C] hover:text-[#292524]'}`}
+                  onClick={() => { setMode('login'); setError(''); setSuccess('') }}
+                  className={`rounded-md py-2 text-sm font-medium transition-colors ${mode === 'login' ? 'bg-white text-[#1C1917] shadow-sm' : 'text-[#78716C] hover:text-[#292524]'}`}
                 >
-                  Register
+                  Sign In
                 </button>
               </div>
 
               {error && <p className="text-xs text-rose-500">{error}</p>}
-              {success && <p className="text-xs text-emerald-600">{success}</p>}
+              {success && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-700 leading-relaxed animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  {success}
+                </div>
+              )}
 
-              {mode === 'login' ? (
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[#292524]">Email address</label>
-                    <input
-                      type="email"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="organization@example.com"
-                      className="h-12 w-full rounded-xl border border-[#D4CDBF] bg-white px-4 text-base text-[#292524] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316]"
-                    />
-                  </div>
+              <form onSubmit={mode === 'login' ? handleLoginSubmit : handleLogin} className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[#292524]">Email address</label>
+                  <input
+                    type="email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="organization@example.com"
+                    required
+                    className="h-12 w-full rounded-xl border border-[#D4CDBF] bg-white px-4 text-base text-[#292524] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316]"
+                  />
+                </div>
 
+                {mode === 'login' && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-[#292524]">Password</label>
                     <div className="relative">
@@ -251,6 +284,7 @@ export default function OrganizationLogin() {
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
                         placeholder="Enter your password"
+                        required
                         className="h-12 w-full rounded-xl border border-[#D4CDBF] bg-white px-4 pr-11 text-base text-[#292524] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316]"
                       />
                       <button
@@ -263,99 +297,32 @@ export default function OrganizationLogin() {
                       </button>
                     </div>
                   </div>
+                )}
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#F97316] to-[#FB923C] px-4 text-base font-semibold text-white transition-colors hover:brightness-110 disabled:opacity-60"
-                  >
-                    {loading ? (
-                      <span className="inline-flex items-center gap-2">
-                        <LoadingSpinner />
-                        Signing in...
-                      </span>
-                    ) : 'Sign in to your account'}
-                  </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#F97316] to-[#FB923C] px-4 text-base font-semibold text-white transition-all hover:brightness-105 active:scale-[0.99] disabled:opacity-60"
+                >
+                  {loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <LoadingSpinner />
+                      Submitting...
+                    </span>
+                  ) : (
+                    mode === 'login' ? 'Sign in to your account' : 'Request Institution Access'
+                  )}
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={handleDirectDemoAccess}
-                    disabled={loading}
-                    className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-[#FDBA74] bg-[#FFF7ED] px-4 text-base font-bold text-[#F97316] hover:bg-[#FFEAD6] transition-colors disabled:opacity-60"
-                  >
-                    🔑 Direct Judge Access
-                  </button>
-                </form>
-              ) : (
-                <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[#292524]">Organization name</label>
-                    <input
-                      type="text"
-                      value={orgName}
-                      onChange={(e) => setOrgName(e.target.value)}
-                      placeholder="Organization name"
-                      className="h-12 w-full rounded-xl border border-[#D4CDBF] bg-white px-4 text-base text-[#292524] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316]"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[#292524]">Description</label>
-                    <input
-                      type="text"
-                      value={orgDescription}
-                      onChange={(e) => setOrgDescription(e.target.value)}
-                      placeholder="Organization description"
-                      className="h-12 w-full rounded-xl border border-[#D4CDBF] bg-white px-4 text-base text-[#292524] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316]"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[#292524]">Admin email</label>
-                    <input
-                      type="email"
-                      value={orgEmail}
-                      onChange={(e) => setOrgEmail(e.target.value)}
-                      placeholder="admin@example.com"
-                      className="h-12 w-full rounded-xl border border-[#D4CDBF] bg-white px-4 text-base text-[#292524] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316]"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[#292524]">Password</label>
-                    <div className="relative">
-                      <input
-                        type={showRegisterPassword ? 'text' : 'password'}
-                        value={orgPassword}
-                        onChange={(e) => setOrgPassword(e.target.value)}
-                        placeholder="Enter your password"
-                        className="h-12 w-full rounded-xl border border-[#D4CDBF] bg-white px-4 pr-11 text-base text-[#292524] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316]"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowRegisterPassword((prev) => !prev)}
-                        className="absolute inset-y-0 right-3 flex items-center"
-                        aria-label={showRegisterPassword ? 'Hide password' : 'Show password'}
-                      >
-                        {showRegisterPassword ? <EyeOffIcon /> : <EyeIcon />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#F97316] to-[#FB923C] px-4 text-base font-semibold text-white transition-colors hover:brightness-110 disabled:opacity-60"
-                  >
-                    {loading ? (
-                      <span className="inline-flex items-center gap-2">
-                        <LoadingSpinner />
-                        Creating organization...
-                      </span>
-                    ) : 'Create organization account'}
-                  </button>
-                </form>
-              )}
+                <button
+                  type="button"
+                  onClick={handleDirectDemoAccess}
+                  disabled={loading}
+                  className="sb-glass-shimmer-purple inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-bold transition-all disabled:opacity-60"
+                >
+                  🔑 Direct Judge Access
+                </button>
+              </form>
             </div>
           </section>
         </div>

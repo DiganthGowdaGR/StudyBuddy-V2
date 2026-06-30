@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { name: 'Your Progress', id: 'your-progress' },
 ]
 
-export default function Navbar() {
+export default function Navbar({ onStartLearningClick, onWaitlistClick }) {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('')
@@ -111,8 +111,9 @@ export default function Navbar() {
           {/* CTA & Hamburger */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate('/get-started')}
-              className="hidden sm:inline-block relative group px-5 py-2 rounded-full text-[13px] font-semibold text-white bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#FB923C] hover:to-[#F97316] transition-all duration-300 shadow-[0_0_16px_rgba(249,115,22,0.2)] hover:shadow-[0_0_24px_rgba(249,115,22,0.35)] cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              type="button"
+              onClick={onStartLearningClick || (() => navigate('/get-started'))}
+              className="hidden sm:inline-block relative group px-5 py-2 rounded-full text-[13px] font-semibold sb-glass-shimmer-orange cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
             >
               Start Learning
             </button>
@@ -190,11 +191,16 @@ export default function Navbar() {
                 className="pt-3 border-t border-[#E6E1DA]/60"
               >
                 <button
+                  type="button"
                   onClick={() => {
                     setMobileMenuOpen(false)
-                    navigate('/get-started')
+                    if (onStartLearningClick) {
+                      onStartLearningClick()
+                    } else {
+                      navigate('/get-started')
+                    }
                   }}
-                  className="w-full text-center py-2.5 rounded-full text-[13px] font-semibold text-white bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#FB923C] hover:to-[#F97316] shadow-[0_0_16px_rgba(249,115,22,0.2)] cursor-pointer"
+                  className="w-full text-center py-2.5 rounded-full text-[13px] font-semibold sb-glass-shimmer-orange cursor-pointer"
                 >
                   Start Learning
                 </button>

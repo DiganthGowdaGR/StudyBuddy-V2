@@ -5,13 +5,44 @@ from datetime import datetime, timedelta
 
 from langchain_groq import ChatGroq
 
-from config import GROQ_API_KEY
+from config import GROQ_API_KEY, GROQ_API_KEYS
+from services.groq_auth import get_current_key, rotate_key
 
-# LangChain Groq client used for both study chat and structured extraction flows.
-llm = ChatGroq(
-    api_key=GROQ_API_KEY,
-    model="llama-3.3-70b-versatile",
-)
+def invoke_llm_with_rotation(messages):
+    """Invoke Groq LLM with automatic key rotation on rate limits / failures."""
+    keys_count = len(GROQ_API_KEYS) if GROQ_API_KEYS else 1
+    last_exception = None
+
+    for attempt in range(keys_count):
+        api_key = get_current_key() or GROQ_API_KEY
+        try:
+            current_llm = ChatGroq(
+                api_key=api_key,
+                model="llama-3.3-70b-versatile",
+            )
+            return current_llm.invoke(messages)
+        except Exception as e:
+            last_exception = e
+            msg = str(e).lower()
+            # Rotate if rate limited or invalid key
+            is_exhausted = (
+                "429" in msg
+                or "rate_limit" in msg
+                or "rate limit" in msg
+                or "quota" in msg
+                or "limit exceeded" in msg
+                or "401" in msg
+                or "invalid api key" in msg
+            )
+            if is_exhausted and keys_count > 1:
+                rotate_key()
+                continue
+            else:
+                raise e
+
+    if last_exception:
+        raise last_exception
+    raise RuntimeError("No Groq API keys available.")
 
 
 def _safe_string(value, fallback=""):
@@ -225,7 +256,7 @@ def extract_info_llm(
     )
     messages = [("system", system), ("human", text)]
     try:
-        response = llm.invoke(messages)
+        response = invoke_llm_with_rotation(messages)
         content = str(response.content or "")
         parsed = _extract_json_payload(content)
         return _sanitize_schedule_info(parsed, text, now)
@@ -247,7 +278,7 @@ def generate_notes(text: str) -> str:
     )
     messages = [("system", system), ("human", text)]
     try:
-        response = llm.invoke(messages)
+        response = invoke_llm_with_rotation(messages)
         return response.content
     except Exception as e:
         return (
@@ -279,7 +310,7 @@ def answer_question(question: str, context: str) -> str:
     user_msg = f"Student: {question}"
     messages = [("system", system), ("human", user_msg)]
     try:
-        response = llm.invoke(messages)
+        response = invoke_llm_with_rotation(messages)
         return response.content
     except Exception as e:
         return (
@@ -304,7 +335,7 @@ def search_and_synthesize(query: str, search_type: str) -> str:
     user_msg = f"Simulate a {search_type} for: {query}"
     messages = [("system", system), ("human", user_msg)]
     try:
-        response = llm.invoke(messages)
+        response = invoke_llm_with_rotation(messages)
         return response.content
     except Exception as e:
         return (
@@ -335,7 +366,7 @@ def generate_greeting(student_name: str, recent_sessions: list) -> str:
     )
     messages = [("system", system), ("human", user_msg)]
     try:
-        response = llm.invoke(messages)
+        response = invoke_llm_with_rotation(messages)
         return response.content
     except Exception as e:
         # Static mock greetings when offline
@@ -366,7 +397,7 @@ def generate_flashcard_answer(question: str, subject: str, context: str = "") ->
 
     messages = [("system", system), ("human", user_msg)]
     try:
-        response = llm.invoke(messages)
+        response = invoke_llm_with_rotation(messages)
         return response.content
     except Exception as e:
         return "Flashcard answer cannot be generated offline. Please connect to the internet to use automated generation."

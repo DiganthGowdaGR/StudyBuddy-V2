@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from services.supabase_service import supabase
-from services.llm_service import llm
+from services.llm_service import invoke_llm_with_rotation
 
 router = APIRouter()
 
